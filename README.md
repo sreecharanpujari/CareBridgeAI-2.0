@@ -1,172 +1,142 @@
-# 🏥 Discharge Care — AI-Powered Post-Hospital Recovery Platform
+# 🌉 CareBridge AI — Your Personal Recovery Companion
 
-> *"Your Recovery Journey, Simplified. Care shouldn't end when a patient leaves the hospital."*
+> *"From hospital instructions to confident recovery."*
+>
+> **Lead Developers & Architects:** **Sree Charan** & **Karthik**
 
 ---
 
 ## 📌 1. Project Overview
+**CareBridge AI** is an accessible, AI-powered healthcare web application built for patients, caregivers, and families navigating post-discharge recovery. 
 
-**Discharge Care** is a clinical-grade, accessible post-discharge healthcare web platform built for patients, family caregivers, and clinical teams. 
+Hospital discharge summaries are notoriously dense, filled with complex medical jargon, fragmented medication schedules, and vital follow-up dates. CareBridge AI converts these summaries into clear, plain-language explanations, actionable daily recovery checklists, and flags potentially dangerous ambiguities before mistakes happen.
 
-Leaving the hospital is often confusing and stressful: patients struggle with illegible doctor handwriting, missed medication schedules, dietary uncertainty, and forgotten follow-up checkups. Family members face significant challenges trying to coordinate care without shared tools.
-
-Discharge Care provides a unified platform where patients and authorized family caregivers can:
-1. **Translate Messy Prescriptions & Discharge Summaries:** Vision AI & OCR transcribe doctor handwriting into clear instructions while highlighting ambiguous fields.
-2. **Safeguard Patient Safety (Confusion Guard):** Detects dangerous Look-Alike / Sound-Alike (LASA) drug confusions (e.g. *Metoprolol Tartrate vs Succinate ER*, *Hydralazine vs Hydroxyzine*).
-3. **Automate Medication Reminders & Audio Alarms:** Daily schedules with Web Audio medical chimes, browser notifications, and Taken / Skipped / Uncertain status logging.
-4. **Schedule & Sync Doctor Checkups:** Follow-up appointment tracker with advance reminders and one-click `.ics` calendar export for Google Calendar, Apple Calendar, and Outlook.
-5. **Receive Clinician Dietary Guidance:** Tailored clinical nutrition plans with clear **Recommended**, **Limit or Avoid**, and **Ask Your Doctor** sections, Indian food examples (*idli, moong dal khichdi, tender coconut water*), and **Telugu & English** language toggles.
-6. **Track Daily Recovery Progress & Vitals:** 14-day recovery roadmap, pain scale (0–10), body temperature and blood pressure tracking, with **automated clinical red-flag emergency detection**.
-7. **Coordinate with Family Caregivers:** Multi-profile switching between Patient and authorized family members (*e.g., Daughter Pooja, Spouse David*) with caregiver activity logging.
+> ⚠️ **Important Disclaimer**: CareBridge AI is an educational prototype developed for a student hackathon. It does **not** diagnose conditions, prescribe or alter medication dosages, or replace professional clinical judgment.
 
 ---
 
-## 🛠️ 2. Technology Stack
+## 🌟 2. The Unique Feature: Confusion Detector
+While general AI models attempt to guess missing information, **CareBridge AI** introduces the **Confusion Detector** to protect patient safety.
 
-- **Frontend:** React 19, Vite 8, Lucide Icons, Modern Clinical CSS Design System (Teal / Mint Green palette)
-- **Backend:** Node.js, Express.js REST API (`/api/v1/...`)
-- **Database Architecture:** PostgreSQL with Prisma ORM (`prisma/schema.prisma`)
-- **Clinical AI Engine:** Google Gemini REST API (`gemini-2.5-flash`, `gemini-1.5-flash`) with reliable local fallback parsers
-- **Audio & Accessibility:** Synthesized Web Audio API medical chime alerts and browser Notification API
-- **Calendar Interoperability:** RFC 5545 `.ics` iCalendar export
+When an uploaded discharge summary contains:
+- Instructions to take medication where the medicine name is unreadable or missing
+- Missing or ambiguous medication timing or frequency
+- Conflicting appointment dates
+- Vague or incomplete post-op instructions
 
----
-
-## 🎨 3. Design System & Accessibility
-
-- **Primary Colors:** Clinical Teal (`#0d9488`, `#0f766e`), Light Mint (`#f0fdfa`), Crisp White (`#ffffff`)
-- **Text:** Dark Charcoal / Navy (`#0f172a`, `#1e293b`) for maximum contrast and readability for elderly patients
-- **Design Tokens:** Rounded cards (`var(--radius-lg)`), soft clinical drop-shadows, zero cluttered animations
-- **Accessibility:** Large readable typography, color-coded status badges, and prominent emergency red-flag triage buttons
+The Confusion Detector:
+1. **Highlights** the exact source text.
+2. **Explains** why the instruction is unclear.
+3. **Displays** a high-visibility warning.
+4. **Instructs** the patient: *"Do NOT guess. Contact your doctor or pharmacist to confirm."*
+5. **Labels** the item as **"Needs Confirmation"** on the Recovery Journey map.
 
 ---
 
-## 📂 4. Project Directory Structure
+## 🛠️ 3. Technology Stack
+- **Frontend & App Framework**: [Streamlit](https://streamlit.io/)
+- **PDF Extraction**: `pypdf`
+- **Image Processing & OCR**: `Pillow` & `pytesseract`
+- **Audio & Accessibility**: `gTTS` (Google Text-to-Speech) with multi-language support (English, Telugu, Hindi)
+- **AI Engine**: Google Gemini API (`gemini-2.5-flash`) with reliable local fallback parser
+- **Testing**: Python `unittest` framework
 
+---
+
+## 📂 4. Project Structure
 ```text
 CareBridgeAI/
 │
-├── prisma/
-│   ├── schema.prisma              # Complete PostgreSQL relational schema (12 entities)
-│   └── seed.js                    # Database seed script with clinical demo data
+├── app.py                         # Main Streamlit web application & UI
+├── requirements.txt               # Project Python dependencies
+├── README.md                      # Documentation & demo script
+├── .env.example                   # Template for optional API keys
+├── .gitignore                     # Git ignore rules
 │
-├── server/
-│   ├── index.js                   # Express server entry point (Port 5000)
-│   ├── api_v1.js                  # Modular /api/v1 REST API (Patients, Meds, Appointments, Vitals)
-│   ├── auth.js                    # JWT token creation, password hashing (scrypt) & Google OAuth
-│   └── data/                      # Local persistent JSON data storage
+├── modules/
+│   ├── document_reader.py         # PDF text extraction & file validation
+│   ├── medical_explainer.py       # Plain language translations & grounded Q&A
+│   ├── confusion_detector.py      # The Unique Feature: Ambiguity detection
+│   ├── recovery_planner.py        # Categorized recovery map & daily checklist
+│   └── disease_diet_planner.py    # AI Disease-Specific Clinical Nutrition Planner
 │
-├── client/
-│   ├── index.html                 # HTML entry point with metadata & Google Fonts
-│   ├── vite.config.js             # Vite build configuration
-│   └── src/
-│       ├── App.jsx                # Main application component & tab coordinator
-│       ├── index.css              # Modern hospital & clinical care design tokens
-│       ├── components/
-│       │   ├── Navbar.jsx         # Navigation bar with brand logo & caregiver indicator
-│       │   ├── Hero.jsx           # Public landing hero ("Your Recovery Journey, Simplified.")
-│       │   ├── PatientDashboardView.jsx # Executive recovery dashboard & metric cards
-│       │   ├── DocumentAnalysisView.jsx # Full discharge summary reader & AI explainer
-│       │   ├── HandwrittenOCRView.jsx   # Physician cursive handwriting OCR & transcription
-│       │   ├── ConfusionGuardView.jsx   # Look-Alike / Sound-Alike (LASA) safety guard
-│       │   ├── TimelineView.jsx         # 14-day timetable, alarms, checkups & symptom tracker
-│       │   ├── DietPlannerView.jsx      # Dietary assistant with Indian food examples & Telugu support
-│       │   ├── ProfileModal.jsx         # Multi-family member profile switcher & auth
-│       │   └── EmergencyModal.jsx       # Emergency ER warning signs & dispatch contacts
-│       └── utils/
-│           ├── apiConfig.js       # Dynamic API endpoints & auth header helpers
-│           └── audioChime.js      # Synthesized Web Audio API medical alarm chimes
+├── sample_documents/
+│   ├── generate_samples.py        # Script to generate fictional test documents
+│   ├── sample_discharge_summary.pdf
+│   └── sample_discharge_note.png
 │
-├── .env.example                   # Environment configuration template
-└── README.md                      # Comprehensive project documentation
+└── tests/
+    ├── test_document_reader.py       # Unit tests for upload & extraction
+    ├── test_confusion_detector.py    # Unit tests for Confusion Detector
+    ├── test_recovery_planner.py      # Unit tests for reminders schedule & calendar export
+    └── test_disease_diet_planner.py  # Unit tests for clinical diet planning & metadata filtering
 ```
 
 ---
 
-## 🚀 5. Quick Start Instructions
+## 🚀 5. Quick Start Instructions (Windows & VS Code)
 
 ### Prerequisites
-- Node.js (v18.0.0 or higher)
-- npm (v9.0.0 or higher)
+- Python 3.10+ installed on Windows
+- Visual Studio Code
 
-### Step 1: Install Dependencies
+### Step 1: Clone or Open the Project
+Open the `CareBridgeAI` directory in VS Code.
+
+### Step 2: Set Up Virtual Environment & Dependencies
+In your VS Code terminal (<kbd>Ctrl</kbd> + <kbd>`</kbd>):
 ```powershell
-# Install root, backend, and frontend dependencies
-npm run build
+python -m venv venv
+.\venv\Scripts\python.exe -m pip install -r requirements.txt
 ```
 
-### Step 2: Configure Environment Variables
-Copy `.env.example` to `.env`:
+### Step 3: Run the Application
 ```powershell
-copy .env.example .env
+.\venv\Scripts\streamlit.exe run app.py
 ```
-*(Optional: Add your Google Gemini API key to `.env` for live AI vision models; if omitted, the application runs seamlessly using built-in clinical fallback responses).*
-
-### Step 3: Run the Full-Stack Application
-Open two terminal windows:
-
-```powershell
-# Terminal 1: Start Node.js Express API Server (Port 5000)
-node server/index.js
-
-# Terminal 2: Start Vite React Frontend (Port 5173)
-cd client
-npm run dev
-```
-
-Open [http://localhost:5173](http://localhost:5173) in your browser.
+Open [http://localhost:8501](http://localhost:8501) in your browser.
 
 ---
 
-## 🗄️ 6. Database Schema & Prisma Setup
-
-The relational schema is configured in [`prisma/schema.prisma`](file:///c:/Users/vyshn/Downloads/CareBridgeAI/prisma/schema.prisma):
-
-- `User`: Patient and caregiver accounts with scrypt password hashing
-- `PatientProfile`: Clinical diagnosis, discharge date, allergies, and blood group
-- `CaregiverAccess`: Authorized family members and access level permissions
-- `PrescriptionDocument`: Uploaded image and PDF files
-- `ExtractedPrescription`: OCR and AI-structured clinical medication fields
-- `Medication` & `MedicationSchedule`: Verified schedules and timing slots
-- `MedicationLog`: Recorded adherence (`TAKEN`, `SKIPPED`, `UNCERTAIN`) with caregiver attribution
-- `Appointment`: Upcoming doctor visits, clinics, preparation notes, and status
-- `DietaryInstruction`: Condition-specific food recommendations and restrictions
-- `RecoveryEntry`: Daily pain score, temperature, blood pressure, and red-flag alerts
-- `Notification`: Medication and follow-up advance reminders
-- `AuditLog`: Security audit log for sensitive profile and prescription changes
-
-To migrate and seed a PostgreSQL database:
+## 🧪 6. Running the Automated Tests
+Run all unit tests with one command:
 ```powershell
-npx prisma migrate dev --name init
-node prisma/seed.js
+.\venv\Scripts\python.exe -m unittest discover tests
+```
+Expected output:
+```text
+Ran 15 tests in 1.5s
+OK
 ```
 
 ---
 
-## 🔌 7. REST API Documentation (`/api/v1`)
+## 🎙️ 7. Three-Minute Hackathon Demonstration Script
 
-| Method | Endpoint | Description |
-| :--- | :--- | :--- |
-| `GET` | `/api/v1/patients` | List all patient profiles |
-| `GET` | `/api/v1/patients/:id` | Fetch specific patient profile and caregiver list |
-| `PATCH`| `/api/v1/patients/:id` | Update diagnosis, allergies, or emergency contact |
-| `POST`| `/api/v1/patients/:id/caregivers` | Authorize a new family caregiver |
-| `GET` | `/api/v1/patients/:id/medications` | Fetch verified and active medications |
-| `POST`| `/api/v1/medications/:id/logs` | Log dose status (`TAKEN`, `SKIPPED`, `UNCERTAIN`) |
-| `GET` | `/api/v1/patients/:id/appointments`| Fetch upcoming and completed doctor appointments |
-| `POST`| `/api/v1/patients/:id/appointments`| Schedule a new appointment with preparation notes |
-| `GET` | `/api/v1/patients/:id/recovery` | Fetch daily recovery entries and vitals logs |
-| `POST`| `/api/v1/patients/:id/recovery` | Record daily pain, temperature, blood pressure, and symptoms |
-| `GET` | `/api/v1/patients/:id/recovery/summary` | Get 14-day progress %, adherence rate, and red-flag count |
-| `POST`| `/api/v1/ai/explain-instructions` | AI plain-language translation with Telugu/English support |
-| `POST`| `/api/v1/ai/dietary-guidance` | Clinician nutrition rules with Indian food alternatives |
-| `GET` | `/api/v1/notifications` | Fetch unread notifications and reminders |
+### [0:00 - 0:45] The Problem & Introduction
+- *"Every year, millions of patients leave hospitals clutching multi-page discharge summaries filled with clinical terms like 'exacerbation', 'laparoscopic cholecystectomy', and conflicting dates. Over 40% of patients misunderstand their discharge instructions, leading to preventable hospital readmissions."*
+- *"Meet CareBridge AI: From hospital instructions to confident recovery."*
 
----
+### [0:45 - 1:30] Document Upload & Plain Explanation
+- Show the **🏠 Home** page and emphasize the **Medical Safety Disclaimer**.
+- Switch to **📄 Upload & Review Document**, click **Load Sample Discharge Summary**.
+- Highlight that patients can review and correct any extracted text before processing.
+- Switch to **💡 Understand My Instructions**:
+  - Show the side-by-side view (Original Medical Text vs Plain Language Summary).
+  - Show the **Medical Glossary** explaining terms like *Furosemide* and *Congestive Heart Failure*.
+  - Show the **Patient Understanding Assistant** by asking: *"What appointment do I have?"*
 
-## 🛡️ 8. Clinical Safety Guardrails
+### [1:30 - 2:20] The Star Feature: Confusion Detector
+- Switch to **🔍 Confusion Detector**:
+  - *"Here is what makes CareBridge AI unique. Instead of hallucinating answers, our Confusion Detector spots dangerous instructions."*
+  - Show **Issue #1**: The document says *"Take one capsule twice daily"* without naming the medicine. CareBridge AI flags this in RED: *"Needs Confirmation. Do not take unknown medication. Call your pharmacy."*
+  - Show **Issue #2**: Conflicting follow-up dates (Oct 24 vs Oct 21). CareBridge AI warns the patient to call the clinic to verify.
 
-- **Zero Guesswork / Hallucination Policy:** If a prescription has missing medicine names or unreadable dosage handwriting, the system flags it as **"Needs Confirmation"** instead of guessing.
-- **Verification Gate:** AI-extracted prescriptions remain in draft status until verified by the patient or authorized caregiver before medication alarms are activated.
-- **Automated Red-Flag Escalation:** If logged body temperature &ge; 100.4°F or pain score &ge; 8/10, an immediate clinical alert is displayed instructing the user to contact their hospital or emergency services.
-- **Educational Disclaimer:** Discharge Care supports patient care adherence; it does not replace a licensed physician or provide independent diagnoses.
+### [2:20 - 3:00] Recovery Journey & Accessibility
+- Switch to **🗺️ My Recovery Journey**:
+  - Show the interactive checklist where confirmed medicines are separated from items requiring confirmation.
+  - Check off a completed morning task and show the progress bar.
+- Switch to **♿ Accessibility & Audio**:
+  - Play the Text-to-Speech audio so visually impaired or senior patients can listen aloud.
+- Conclude: *"CareBridge AI turns confusing discharge paperwork into a clear, safe bridge to healing."*
+
